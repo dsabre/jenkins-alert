@@ -47,8 +47,6 @@ def get_result(build_data):
     return ((bcolors.OK + build_data['result'] + bcolors.END) if build_data['result'] == 'SUCCESS' else (bcolors.FAIL + build_data['result'] + bcolors.END))
 
 while continueCheck:
-    os.system('cls' if os.name == 'nt' else 'clear')
-
     lastBuildUrl = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/api/json').json()['lastBuild']['url']
     buildData = do_jenkins_request(lastBuildUrl + 'api/json').json()
     promotionStage = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/promotion/process/' + JENKINS_PROMOTION_STAGE_NAME + '/api/json').json()['lastBuild']
@@ -72,6 +70,7 @@ while continueCheck:
     except:
         promotionProdData = None
 
+    os.system('cls' if os.name == 'nt' else 'clear')
     print(bcolors.HEADER + 'Project: ' + bcolors.BOLD + JENKINS_PROJECT + bcolors.END)
     print('')
     print(bcolors.GRAY + 'URLs:' + bcolors.END)
