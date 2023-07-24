@@ -10,6 +10,7 @@ JENKINS_PASSWORD = sys.argv[6]
 SLEEP_TIME = float(sys.argv[7])
 TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
+REQUESTS_TIMEOUT=10
 
 continueCheck = True
 showNotification = False
@@ -31,7 +32,7 @@ def show_error_from_url(url):
 
 def do_jenkins_request(url):
     try:
-        response = requests.get(url, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), timeout=10)
+        response = requests.get(url, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), timeout=REQUESTS_TIMEOUT)
         if response.status_code != 200:
             show_error_from_url(url)
         
@@ -53,7 +54,7 @@ def do_telegram_request(text):
         return False
 
     url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
-    return requests.post(url, timeout=10, json={'chat_id': TELEGRAM_CHAT_ID, 'text': text}).status_code == 200
+    return requests.post(url, json={'chat_id': TELEGRAM_CHAT_ID, 'text': text}, timeout=REQUESTS_TIMEOUT).status_code == 200
 
 while continueCheck:
     lastBuildUrl = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/api/json').json()['lastBuild']['url']
