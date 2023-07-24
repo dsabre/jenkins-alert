@@ -60,7 +60,7 @@ while continueCheck:
     lastBuildUrl = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json').json()['lastBuild']['url']
     buildData = do_jenkins_request(f'{lastBuildUrl}api/json').json()
     
-    tableRows = [['Build', buildData['id'], get_building_string(buildData), get_result(buildData)]]
+    tableRows = [['Build', buildData['id'], buildData['description'], get_building_string(buildData), get_result(buildData), f'{lastBuildUrl}console']]
 
     extraJobBuildings = []
     for extraJob in JENKINS_EXTRA_JOBS:
@@ -69,13 +69,13 @@ while continueCheck:
             try:
                 promotion = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json').json()['lastBuild']
                 promotionData = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json').json()
-                tableRows.append([f'{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}', promotionData['id'], get_building_string(promotionData), get_result(promotionData)])
+                tableRows.append([f'{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}', promotionData['id'], (promotionData['description'] if promotionData['description'] else promotionData['fullDisplayName']), get_building_string(promotionData), get_result(promotionData), promotionData['url']])
                 extraJobBuilding = promotionData['building']
             except:
                 promotionData = None
         
         extraJobBuildings.append(extraJobBuilding)
-
+    
     os.system('cls' if os.name == 'nt' else 'clear')
     print(f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}')
     print('')
@@ -85,8 +85,10 @@ while continueCheck:
     print(tabulate(tableRows, headers=[
         f'{bcolors.BOLD}Operation{bcolors.END}',
         f'{bcolors.BOLD}ID{bcolors.END}',
+        f'{bcolors.BOLD}Description{bcolors.END}',
         f'{bcolors.BOLD}Running{bcolors.END}',
-        f'{bcolors.BOLD}Status{bcolors.END}'
+        f'{bcolors.BOLD}Status{bcolors.END}',
+        f'{bcolors.BOLD}URL console{bcolors.END}'
         ], tablefmt='rounded_grid'))
     print('')
 
