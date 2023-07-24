@@ -1,6 +1,6 @@
 # jenkins-alert
 
-A simple Jenkins watcher in python
+A simple Jenkins watcher in python.
 
 ## Requirements
 
