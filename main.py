@@ -11,7 +11,8 @@ SHOW_URLS = int(sys.argv[7]) == 1
 TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
 TELEGRAM_MESSAGE = sys.argv[10]
-REQUESTS_TIMEOUT=10
+DECORATED_OUTPUT = int(sys.argv[11]) == 1
+REQUESTS_TIMEOUT = 10
 
 while('' in JENKINS_EXTRA_JOBS):
     JENKINS_EXTRA_JOBS.remove('')
@@ -20,15 +21,15 @@ continueCheck = True
 showNotification = False
 
 class bcolors:
-    HEADER = '\033[95m'
-    OK = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    INFO = '\033[96m'
-    GRAY = '\033[37m'
-    END = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = '\033[95m' if DECORATED_OUTPUT else ''
+    OK = '\033[92m' if DECORATED_OUTPUT else ''
+    WARNING = '\033[93m' if DECORATED_OUTPUT else ''
+    FAIL = '\033[91m' if DECORATED_OUTPUT else ''
+    INFO = '\033[96m' if DECORATED_OUTPUT else ''
+    GRAY = '\033[37m' if DECORATED_OUTPUT else ''
+    END = '\033[0m' if DECORATED_OUTPUT else ''
+    BOLD = '\033[1m' if DECORATED_OUTPUT else ''
+    UNDERLINE = '\033[4m' if DECORATED_OUTPUT else ''
 
 def show_error_from_url(url):
     print(f"{bcolors.FAIL}Error from url: {bcolors.UNDERLINE}{url}{bcolors.END}")
