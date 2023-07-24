@@ -7,10 +7,14 @@ JENKINS_URL = sys.argv[3]
 JENKINS_USERNAME = sys.argv[4]
 JENKINS_PASSWORD = sys.argv[5]
 SLEEP_TIME = float(sys.argv[6])
-TELEGRAM_BOT_TOKEN = sys.argv[7]
-TELEGRAM_CHAT_ID = sys.argv[8]
-TELEGRAM_MESSAGE = sys.argv[9]
+SHOW_URLS = int(sys.argv[7]) == 1
+TELEGRAM_BOT_TOKEN = sys.argv[8]
+TELEGRAM_CHAT_ID = sys.argv[9]
+TELEGRAM_MESSAGE = sys.argv[10]
 REQUESTS_TIMEOUT=10
+
+while('' in JENKINS_EXTRA_JOBS):
+    JENKINS_EXTRA_JOBS.remove('')
 
 continueCheck = True
 showNotification = False
@@ -60,7 +64,12 @@ while continueCheck:
     lastBuildUrl = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json').json()['lastBuild']['url']
     buildData = do_jenkins_request(f'{lastBuildUrl}api/json').json()
     
-    tableRows = [['Build', buildData['id'], buildData['description'], get_building_string(buildData), get_result(buildData), f'{lastBuildUrl}console']]
+    tableRows = [[f'Build', buildData['id'], buildData['description'], get_building_string(buildData), get_result(buildData)]]
+    urls = [
+        f'{JENKINS_URL}',
+        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}',
+        f'{lastBuildUrl}console'
+    ]
 
     extraJobBuildings = []
     for extraJob in JENKINS_EXTRA_JOBS:
@@ -69,27 +78,33 @@ while continueCheck:
             try:
                 promotion = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json').json()['lastBuild']
                 promotionData = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json').json()
-                tableRows.append([f'{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}', promotionData['id'], (promotionData['description'] if promotionData['description'] else promotionData['fullDisplayName']), get_building_string(promotionData), get_result(promotionData), promotionData['url']])
+                urls.append(promotionData["url"])
+                tableRows.append([f'{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}', promotionData['id'], (promotionData['description'] if promotionData['description'] else promotionData['fullDisplayName']), get_building_string(promotionData), get_result(promotionData)])
                 extraJobBuilding = promotionData['building']
             except:
                 promotionData = None
         
         extraJobBuildings.append(extraJobBuilding)
     
+    urls = '\n'.join(urls)
+    
     os.system('cls' if os.name == 'nt' else 'clear')
+
     print(f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}')
-    print('')
-    print(f'{bcolors.GRAY}URLs:{bcolors.END}')
-    print(f'{bcolors.GRAY}({bcolors.UNDERLINE}{JENKINS_URL}{bcolors.END}{bcolors.GRAY})\n({bcolors.UNDERLINE}{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}{bcolors.END}{bcolors.GRAY}){bcolors.END}')
     print('')
     print(tabulate(tableRows, headers=[
         f'{bcolors.BOLD}Operation{bcolors.END}',
         f'{bcolors.BOLD}ID{bcolors.END}',
         f'{bcolors.BOLD}Description{bcolors.END}',
         f'{bcolors.BOLD}Running{bcolors.END}',
-        f'{bcolors.BOLD}Status{bcolors.END}',
-        f'{bcolors.BOLD}URL console{bcolors.END}'
+        f'{bcolors.BOLD}Status{bcolors.END}'
         ], tablefmt='rounded_grid'))
+    
+    if SHOW_URLS:
+        print('')
+        print(f'{bcolors.GRAY}URLs:{bcolors.END}')
+        print(f'{bcolors.GRAY}{bcolors.UNDERLINE}{urls}{bcolors.END}')
+        
     print('')
 
     continueCheck = buildData['building'] or (True in extraJobBuildings)
