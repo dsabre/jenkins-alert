@@ -26,7 +26,7 @@ JENKINS_PASSWORD="password"
 SLEEP_TIME=5 # info refresh timing expressed in seconds
 TELEGRAM_BOT_TOKEN="" # optional
 TELEGRAM_CHAT_ID="" # optional
-TELEGRAM_MESSAGE="" # optional
+TELEGRAM_MESSAGE="" # optional (if empty but telegram is configured, will be used a standard message)
 # end script configuration
 
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../main.py"
@@ -47,7 +47,7 @@ JENKINS_PASSWORD="password"
 SLEEP_TIME=5 # info refresh timing expressed in seconds
 TELEGRAM_BOT_TOKEN="" # optional
 TELEGRAM_CHAT_ID="" # optional
-TELEGRAM_MESSAGE="" # optional
+TELEGRAM_MESSAGE="" # optional (if empty but telegram is configured, will be used a standard message)
 # end script configuration
 
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../new.py"
