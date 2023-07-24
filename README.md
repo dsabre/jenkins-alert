@@ -24,9 +24,9 @@ JENKINS_URL="http://your-jenkins-url.example"
 JENKINS_USERNAME="username"
 JENKINS_PASSWORD="password"
 SLEEP_TIME=5 # info refresh timing expressed in seconds
-TELEGRAM_BOT_TOKEN="" # optional
-TELEGRAM_CHAT_ID="" # optional
-TELEGRAM_MESSAGE="" # optional (if empty but telegram is configured, will be used a standard message)
+TELEGRAM_BOT_TOKEN="" # can be empty
+TELEGRAM_CHAT_ID="" # can be empty
+TELEGRAM_MESSAGE="" # can be empty (if empty but telegram is configured, will be used a standard message)
 # end script configuration
 
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../main.py"
@@ -45,9 +45,9 @@ JENKINS_URL="http://your-jenkins-url.example"
 JENKINS_USERNAME="username"
 JENKINS_PASSWORD="password"
 SLEEP_TIME=5 # info refresh timing expressed in seconds
-TELEGRAM_BOT_TOKEN="" # optional
-TELEGRAM_CHAT_ID="" # optional
-TELEGRAM_MESSAGE="" # optional (if empty but telegram is configured, will be used a standard message)
+TELEGRAM_BOT_TOKEN="" # can be empty
+TELEGRAM_CHAT_ID="" # can be empty
+TELEGRAM_MESSAGE="" # can be empty (if empty but telegram is configured, will be used a standard message)
 # end script configuration
 
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../new.py"
