@@ -1,5 +1,10 @@
 # jenkins-alert
 
+## Requirements
+
+- [notify-send](https://ss64.com/bash/notify-send.html "notify-send")
+- [tabulate](https://pypi.org/project/tabulate/ "tabulate")
+
 ## Usage
 
 Create a script inside the scripts directory with the following code:
