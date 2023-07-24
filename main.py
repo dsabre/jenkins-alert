@@ -8,6 +8,8 @@ JENKINS_URL = sys.argv[4]
 JENKINS_USERNAME = sys.argv[5]
 JENKINS_PASSWORD = sys.argv[6]
 SLEEP_TIME = float(sys.argv[7])
+TELEGRAM_BOT_TOKEN = sys.argv[8]
+TELEGRAM_CHAT_ID = sys.argv[9]
 
 continueCheck = True
 showNotification = False
@@ -24,7 +26,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 def show_error_from_url(url):
-    print(bcolors.FAIL + "Error from url: " + bcolors.UNDERLINE + url + bcolors.END)
+    print(f"{bcolors.FAIL}Error from url: {bcolors.UNDERLINE}{url}{bcolors.END}")
     sys.exit(1)
 
 def do_jenkins_request(url):
@@ -38,49 +40,56 @@ def do_jenkins_request(url):
         show_error_from_url(url)
 
 def get_building_string(build_data):
-    return (bcolors.WARNING + 'yes' + bcolors.END) if build_data['building'] else 'no'
+    return (f'{bcolors.WARNING}yes{bcolors.END}') if build_data['building'] else 'no'
 
 def get_result(build_data):
     if build_data['building']:
-        return bcolors.WARNING + 'BUILDING' + bcolors.END
+        return f'{bcolors.WARNING}BUILDING{bcolors.END}'
     
-    return ((bcolors.OK + build_data['result'] + bcolors.END) if build_data['result'] == 'SUCCESS' else (bcolors.FAIL + build_data['result'] + bcolors.END))
+    return (f'{bcolors.OK}{build_data["result"]}{bcolors.END}' if build_data['result'] == 'SUCCESS' else f'{bcolors.FAIL}{build_data["result"]}{bcolors.END}')
+
+def do_telegram_request(text):
+    if TELEGRAM_BOT_TOKEN == '' or TELEGRAM_CHAT_ID == '':
+        return False
+
+    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
+    return requests.post(url, timeout=10, json={'chat_id': TELEGRAM_CHAT_ID, 'text': text}).status_code == 200
 
 while continueCheck:
-    lastBuildUrl = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/api/json').json()['lastBuild']['url']
-    buildData = do_jenkins_request(lastBuildUrl + 'api/json').json()
-    promotionStage = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/promotion/process/' + JENKINS_PROMOTION_STAGE_NAME + '/api/json').json()['lastBuild']
-    promotionProd = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/promotion/process/' + JENKINS_PROMOTION_PROD_NAME + '/api/json').json()['lastBuild']
+    lastBuildUrl = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/api/json').json()['lastBuild']['url']
+    buildData = do_jenkins_request(f'{lastBuildUrl}api/json').json()
+    promotionStage = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/promotion/process/{JENKINS_PROMOTION_STAGE_NAME}/api/json').json()['lastBuild']
+    promotionProd = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/promotion/process/{JENKINS_PROMOTION_PROD_NAME}/api/json').json()['lastBuild']
 
     tableRows = [['Build', buildData['id'], get_building_string(buildData), get_result(buildData)]]
 
     promotionStageBuilding = False
     try:
-        promotionStageData = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/promotion/process/' + JENKINS_PROMOTION_STAGE_NAME + '/' + str(promotionStage['number']) + '/api/json').json()
-        tableRows.append(['Promotion ' + bcolors.BOLD + bcolors.INFO + JENKINS_PROMOTION_STAGE_NAME + bcolors.END, promotionStageData['id'], get_building_string(promotionStageData), get_result(promotionStageData)])
+        promotionStageData = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/promotion/process/{JENKINS_PROMOTION_STAGE_NAME}/{str(promotionStage["number"])}/api/json').json()
+        tableRows.append([f'Promotion {bcolors.BOLD}{bcolors.INFO}{JENKINS_PROMOTION_STAGE_NAME}{bcolors.END}', promotionStageData['id'], get_building_string(promotionStageData), get_result(promotionStageData)])
         promotionStageBuilding = promotionStageData['building']
     except:
         promotionStageData = None
 
     promotionProdBuilding = False
     try:
-        promotionProdData = do_jenkins_request(JENKINS_URL + '/job/' + JENKINS_PROJECT + '/promotion/process/' + JENKINS_PROMOTION_PROD_NAME + '/' + str(promotionProd['number']) + '/api/json').json()
-        tableRows.append(['Promotion ' + bcolors.BOLD + bcolors.INFO + JENKINS_PROMOTION_PROD_NAME + bcolors.END, promotionProdData['id'], get_building_string(promotionProdData), get_result(promotionProdData)])
+        promotionProdData = do_jenkins_request(f'{JENKINS_URL}/job/{JENKINS_PROJECT}/promotion/process/{JENKINS_PROMOTION_PROD_NAME}/{str(promotionProd["number"])}/api/json').json()
+        tableRows.append([f'Promotion {bcolors.BOLD}{bcolors.INFO}{JENKINS_PROMOTION_PROD_NAME}{bcolors.END}', promotionProdData['id'], get_building_string(promotionProdData), get_result(promotionProdData)])
         promotionProdBuilding = promotionProdData['building']
     except:
         promotionProdData = None
 
     os.system('cls' if os.name == 'nt' else 'clear')
-    print(bcolors.HEADER + 'Project: ' + bcolors.BOLD + JENKINS_PROJECT + bcolors.END)
+    print(f'{bcolors.HEADER}Project:{bcolors.BOLD} {JENKINS_PROJECT}{bcolors.END}')
     print('')
-    print(bcolors.GRAY + 'URLs:' + bcolors.END)
-    print(bcolors.GRAY + '(' + bcolors.UNDERLINE + JENKINS_URL + bcolors.END + bcolors.GRAY + ')\n(' + bcolors.UNDERLINE + JENKINS_URL + '/job/' + JENKINS_PROJECT + bcolors.END + bcolors.GRAY + ')' + bcolors.END)
+    print(f'{bcolors.GRAY}URLs:{bcolors.END}')
+    print(f'{bcolors.GRAY}({bcolors.UNDERLINE}{JENKINS_URL}{bcolors.END}{bcolors.GRAY})\n({bcolors.UNDERLINE}{JENKINS_URL}/job/{JENKINS_PROJECT}{bcolors.END}{bcolors.GRAY}){bcolors.END}')
     print('')
     print(tabulate(tableRows, headers=[
-        bcolors.BOLD + 'Operation' + bcolors.END,
-        bcolors.BOLD + 'ID' + bcolors.END,
-        bcolors.BOLD + 'Running' + bcolors.END,
-        bcolors.BOLD + 'Status' + bcolors.END
+        f'{bcolors.BOLD}Operation{bcolors.END}',
+        f'{bcolors.BOLD}ID{bcolors.END}',
+        f'{bcolors.BOLD}Running{bcolors.END}',
+        f'{bcolors.BOLD}Status{bcolors.END}'
         ], tablefmt='rounded_grid'))
     print('')
 
@@ -91,4 +100,6 @@ while continueCheck:
         time.sleep(SLEEP_TIME)
 
 if showNotification:
-    subprocess.Popen(['notify-send', 'Jenkins for ' + JENKINS_PROJECT + ' is ended'])
+    message = f'Jenkins for {JENKINS_PROJECT} is ended'
+    subprocess.Popen(['notify-send', message])
+    do_telegram_request(message)
