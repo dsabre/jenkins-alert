@@ -10,6 +10,7 @@ JENKINS_PASSWORD = sys.argv[6]
 SLEEP_TIME = float(sys.argv[7])
 TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
+TELEGRAM_MESSAGE = sys.argv[10]
 REQUESTS_TIMEOUT=10
 
 continueCheck = True
@@ -103,4 +104,4 @@ while continueCheck:
 if showNotification:
     message = f'Jenkins for {JENKINS_PROJECT} is ended'
     subprocess.Popen(['notify-send', message])
-    do_telegram_request(message)
+    do_telegram_request(message if TELEGRAM_MESSAGE == '' else TELEGRAM_MESSAGE)
