@@ -16,7 +16,7 @@ Create a script inside the scripts directory with the following code:
 
 # script configuration
 JENKINS_PROJECT="project-name|split-by-pipes-if-you-have-groups"
-JENKINS_EXTRA_JOBS="extra-jobs|split-by-pipes"
+JENKINS_EXTRA_JOBS="extra-jobs|split-by-pipes" # can be empty
 JENKINS_URL="http://your-jenkins-url.example"
 JENKINS_USERNAME="username"
 JENKINS_PASSWORD="password"
