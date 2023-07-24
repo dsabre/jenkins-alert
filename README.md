@@ -1,5 +1,7 @@
 # jenkins-alert
 
+A simple Jenkins watcher in python
+
 ## Requirements
 
 - [notify-send](https://ss64.com/bash/notify-send.html "notify-send")
