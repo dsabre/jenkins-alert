@@ -1,4 +1,4 @@
-import requests, sys, os, time, subprocess;
+import requests, sys, os, time, subprocess
 from tabulate import tabulate
 
 JENKINS_PROJECT = sys.argv[1].split("|")
@@ -14,101 +14,155 @@ TELEGRAM_MESSAGE = sys.argv[10]
 DECORATED_OUTPUT = int(sys.argv[11]) == 1
 REQUESTS_TIMEOUT = 10
 
-while('' in JENKINS_EXTRA_JOBS):
-    JENKINS_EXTRA_JOBS.remove('')
+while "" in JENKINS_EXTRA_JOBS:
+    JENKINS_EXTRA_JOBS.remove("")
 
 continueCheck = True
 showNotification = False
 
-class bcolors:
-    HEADER = '\033[95m' if DECORATED_OUTPUT else ''
-    OK = '\033[92m' if DECORATED_OUTPUT else ''
-    WARNING = '\033[93m' if DECORATED_OUTPUT else ''
-    FAIL = '\033[91m' if DECORATED_OUTPUT else ''
-    INFO = '\033[96m' if DECORATED_OUTPUT else ''
-    GRAY = '\033[37m' if DECORATED_OUTPUT else ''
-    END = '\033[0m' if DECORATED_OUTPUT else ''
-    BOLD = '\033[1m' if DECORATED_OUTPUT else ''
-    UNDERLINE = '\033[4m' if DECORATED_OUTPUT else ''
 
-def show_error_from_url(url):
+class bcolors:
+    HEADER = "\033[95m" if DECORATED_OUTPUT else ""
+    OK = "\033[92m" if DECORATED_OUTPUT else ""
+    WARNING = "\033[93m" if DECORATED_OUTPUT else ""
+    FAIL = "\033[91m" if DECORATED_OUTPUT else ""
+    INFO = "\033[96m" if DECORATED_OUTPUT else ""
+    GRAY = "\033[37m" if DECORATED_OUTPUT else ""
+    END = "\033[0m" if DECORATED_OUTPUT else ""
+    BOLD = "\033[1m" if DECORATED_OUTPUT else ""
+    UNDERLINE = "\033[4m" if DECORATED_OUTPUT else ""
+
+
+def show_error_from_url(url: str):
     print(f"{bcolors.FAIL}Error from url: {bcolors.UNDERLINE}{url}{bcolors.END}")
     sys.exit(1)
 
-def do_jenkins_request(url):
+
+def do_jenkins_request(url: str):
     try:
-        response = requests.get(url, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), timeout=REQUESTS_TIMEOUT)
+        response = requests.get(
+            url, auth=(JENKINS_USERNAME, JENKINS_PASSWORD), timeout=REQUESTS_TIMEOUT
+        )
         if response.status_code != 200:
             show_error_from_url(url)
-        
+
         return response
     except:
         show_error_from_url(url)
 
-def get_building_string(build_data):
-    return (f'{bcolors.WARNING}yes{bcolors.END}') if build_data['building'] else 'no'
 
-def get_result(build_data):
-    if build_data['building']:
-        return f'{bcolors.WARNING}BUILDING{bcolors.END}'
-    
-    return (f'{bcolors.OK}{build_data["result"]}{bcolors.END}' if build_data['result'] == 'SUCCESS' else f'{bcolors.FAIL}{build_data["result"]}{bcolors.END}')
+def get_building_string(build_data: list):
+    return (f"{bcolors.WARNING}yes{bcolors.END}") if build_data["building"] else "no"
 
-def do_telegram_request(text):
-    if TELEGRAM_BOT_TOKEN == '' or TELEGRAM_CHAT_ID == '':
+
+def get_result(build_data: list):
+    if build_data["building"]:
+        return f"{bcolors.WARNING}BUILDING{bcolors.END}"
+
+    return (
+        f'{bcolors.OK}{build_data["result"]}{bcolors.END}'
+        if build_data["result"] == "SUCCESS"
+        else f'{bcolors.FAIL}{build_data["result"]}{bcolors.END}'
+    )
+
+
+def do_telegram_request(text: str):
+    if TELEGRAM_BOT_TOKEN == "" or TELEGRAM_CHAT_ID == "":
         return False
 
-    url = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage'
-    return requests.post(url, json={'chat_id': TELEGRAM_CHAT_ID, 'text': text}, timeout=REQUESTS_TIMEOUT).status_code == 200
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    return (
+        requests.post(
+            url,
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": text},
+            timeout=REQUESTS_TIMEOUT,
+        ).status_code
+        == 200
+    )
+
 
 while continueCheck:
-    lastBuildUrl = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json').json()['lastBuild']['url']
-    buildData = do_jenkins_request(f'{lastBuildUrl}api/json').json()
-    
-    tableRows = [[f'Build', buildData['id'], buildData['description'], get_building_string(buildData), get_result(buildData)]]
+    lastBuildUrl = do_jenkins_request(
+        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json'
+    ).json()["lastBuild"]["url"]
+    buildData = do_jenkins_request(f"{lastBuildUrl}api/json").json()
+
+    tableRows = [
+        [
+            f"Build",
+            buildData["id"],
+            buildData["description"],
+            get_building_string(buildData),
+            get_result(buildData),
+        ]
+    ]
     urls = [
-        f'{JENKINS_URL}',
+        f"{JENKINS_URL}",
         f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}',
-        f'{lastBuildUrl}console'
+        f"{lastBuildUrl}console",
     ]
 
     extraJobBuildings = []
     for extraJob in JENKINS_EXTRA_JOBS:
         extraJobBuilding = False
-        if extraJob != '':
+        if extraJob != "":
             try:
-                promotion = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json').json()['lastBuild']
-                promotionData = do_jenkins_request(f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json').json()
+                promotion = do_jenkins_request(
+                    f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json'
+                ).json()["lastBuild"]
+                promotionData = do_jenkins_request(
+                    f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json'
+                ).json()
                 urls.append(promotionData["url"])
-                tableRows.append([f'{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}', promotionData['id'], (promotionData['description'] if promotionData['description'] else promotionData['fullDisplayName']), get_building_string(promotionData), get_result(promotionData)])
-                extraJobBuilding = promotionData['building']
+                tableRows.append(
+                    [
+                        f"{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}",
+                        promotionData["id"],
+                        (
+                            promotionData["description"]
+                            if promotionData["description"]
+                            else promotionData["fullDisplayName"]
+                        ),
+                        get_building_string(promotionData),
+                        get_result(promotionData),
+                    ]
+                )
+                extraJobBuilding = promotionData["building"]
             except:
                 promotionData = None
-        
+
         extraJobBuildings.append(extraJobBuilding)
-    
-    urls = '\n'.join(urls)
-    
-    os.system('cls' if os.name == 'nt' else 'clear')
 
-    print(f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}')
-    print('')
-    print(tabulate(tableRows, headers=[
-        f'{bcolors.BOLD}Operation{bcolors.END}',
-        f'{bcolors.BOLD}ID{bcolors.END}',
-        f'{bcolors.BOLD}Description{bcolors.END}',
-        f'{bcolors.BOLD}Running{bcolors.END}',
-        f'{bcolors.BOLD}Status{bcolors.END}'
-        ], tablefmt='rounded_grid'))
-    
+    urls = "\n".join(urls)
+
+    os.system("cls" if os.name == "nt" else "clear")
+
+    print(
+        f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}'
+    )
+    print("")
+    print(
+        tabulate(
+            tableRows,
+            headers=[
+                f"{bcolors.BOLD}Operation{bcolors.END}",
+                f"{bcolors.BOLD}ID{bcolors.END}",
+                f"{bcolors.BOLD}Description{bcolors.END}",
+                f"{bcolors.BOLD}Running{bcolors.END}",
+                f"{bcolors.BOLD}Status{bcolors.END}",
+            ],
+            tablefmt="rounded_grid",
+        )
+    )
+
     if SHOW_URLS:
-        print('')
-        print(f'{bcolors.GRAY}URLs:{bcolors.END}')
-        print(f'{bcolors.GRAY}{bcolors.UNDERLINE}{urls}{bcolors.END}')
-        
-    print('')
+        print("")
+        print(f"{bcolors.GRAY}URLs:{bcolors.END}")
+        print(f"{bcolors.GRAY}{bcolors.UNDERLINE}{urls}{bcolors.END}")
 
-    continueCheck = buildData['building'] or (True in extraJobBuildings)
+    print("")
+
+    continueCheck = buildData["building"] or (True in extraJobBuildings)
 
     if continueCheck:
         showNotification = True
@@ -116,5 +170,5 @@ while continueCheck:
 
 if showNotification:
     message = f'Jenkins for {" > ".join(JENKINS_PROJECT)} is ended'
-    subprocess.Popen(['notify-send', message])
-    do_telegram_request(message if TELEGRAM_MESSAGE == '' else TELEGRAM_MESSAGE)
+    subprocess.Popen(["notify-send", message])
+    do_telegram_request(message if TELEGRAM_MESSAGE == "" else TELEGRAM_MESSAGE)
