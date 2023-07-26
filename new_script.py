@@ -24,7 +24,7 @@ def prompt_float(prompt: str, default: float = 0.0):
         return prompt_float(prompt, default)
 
 
-def prompt_int(prompt: str, choices: list = None, default: int = 0):
+def prompt_int(prompt: str, choices: list = [], default: int = 0):
     response = input(prompt)
 
     if not response:
@@ -36,10 +36,9 @@ def prompt_int(prompt: str, choices: list = None, default: int = 0):
         print(f"Could not convert '{response}' to a int.")
         return prompt_int(prompt, choices, default)
 
-    if choices:
-        while response not in choices:
-            print(f"Please enter a valid choice from the following: {choices}")
-            return prompt_int(prompt, choices, default)
+    if choices and response not in choices:
+        print(f"Please enter a valid choice from the following: {choices}")
+        return prompt_int(prompt, choices, default)
 
     return response
 

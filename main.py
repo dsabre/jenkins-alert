@@ -89,7 +89,7 @@ while continueCheck:
 
     tableRows = [
         [
-            f"Build",
+            "Build",
             buildData["id"],
             buildData["description"],
             get_building_string(buildData),
