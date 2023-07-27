@@ -38,7 +38,9 @@ class bcolors:
 
 def show_error_from_url(url: str):
     print(f"{bcolors.FAIL}Error from url: {bcolors.UNDERLINE}{url}{bcolors.END}")
-    sys.exit(1)
+    
+    if STOP_ON_NOT_RUNNING:
+        sys.exit(1)
 
 
 def do_jenkins_request(url: str):
