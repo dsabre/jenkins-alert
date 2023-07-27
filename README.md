@@ -9,7 +9,7 @@ A simple Jenkins watcher in python.
 
 ## Usage
 
-Just run: ```python3 new_connection.py``` and follow instructions to create a new script or manually create a script inside the "scripts" directory with the following code:
+Just run: ```python3 new_script.py``` and follow instructions to create a new script or manually create a script inside the "scripts" directory with the following code:
 
 ```bash
 #!/bin/bash
