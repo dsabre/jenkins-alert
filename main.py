@@ -38,7 +38,7 @@ class bcolors:
 
 def show_error_from_url(url: str):
     print(f"{bcolors.FAIL}Error from url: {bcolors.UNDERLINE}{url}{bcolors.END}")
-    
+
     if STOP_ON_NOT_RUNNING:
         sys.exit(1)
 
@@ -111,95 +111,104 @@ def set_job_statuses(index: int, value: str):
     jobStatuses[index] = value
 
 
-while continueCheck:
-    lastBuildUrl = do_jenkins_request(
-        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json'
-    ).json()["lastBuild"]["url"]
-    buildData = do_jenkins_request(f"{lastBuildUrl}api/json").json()
-
-    set_job_statuses(0, get_result(buildData, False))
-
-    tableRows = [
-        [
-            "Build",
-            buildData["id"],
-            buildData["description"],
-            get_building_string(buildData),
-            get_result(buildData),
-        ]
-    ]
-    urls = [
-        f"{JENKINS_URL}",
-        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}',
-        f"{lastBuildUrl}console",
-    ]
-
-    extraJobBuildings = []
-    for index, extraJob in enumerate(JENKINS_EXTRA_JOBS):
-        extraJobBuilding = False
-        if extraJob != "":
-            try:
-                promotion = do_jenkins_request(
-                    f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json'
-                ).json()["lastBuild"]
-                promotionData = do_jenkins_request(
-                    f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json'
-                ).json()
-
-                set_job_statuses(index + 1, get_result(promotionData, False))
-
-                urls.append(promotionData["url"])
-                tableRows.append(
-                    [
-                        f"{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}",
-                        promotionData["id"],
-                        (
-                            promotionData["description"]
-                            if promotionData["description"]
-                            else promotionData["fullDisplayName"]
-                        ),
-                        get_building_string(promotionData),
-                        get_result(promotionData),
-                    ]
-                )
-                extraJobBuilding = promotionData["building"]
-            except:
-                promotionData = None
-
-        extraJobBuildings.append(extraJobBuilding)
-
-    urls = "\n".join(urls)
-
+def console_clear():
     os.system("cls" if os.name == "nt" else "clear")
 
-    print(
-        f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}'
-    )
-    print("")
-    print(
-        tabulate(
-            tableRows,
-            headers=[
-                f"{bcolors.BOLD}Operation{bcolors.END}",
-                f"{bcolors.BOLD}ID{bcolors.END}",
-                f"{bcolors.BOLD}Description{bcolors.END}",
-                f"{bcolors.BOLD}Running{bcolors.END}",
-                f"{bcolors.BOLD}Status{bcolors.END}",
-            ],
-            tablefmt="rounded_grid",
+
+while continueCheck:
+    hasError = False
+
+    try:
+        lastBuildUrl = do_jenkins_request(
+            f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json'
+        ).json()["lastBuild"]["url"]
+        buildData = do_jenkins_request(f"{lastBuildUrl}api/json").json()
+
+        set_job_statuses(0, get_result(buildData, False))
+
+        tableRows = [
+            [
+                "Build",
+                buildData["id"],
+                buildData["description"],
+                get_building_string(buildData),
+                get_result(buildData),
+            ]
+        ]
+        urls = [
+            f"{JENKINS_URL}",
+            f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}',
+            f"{lastBuildUrl}console",
+        ]
+
+        extraJobBuildings = []
+        for index, extraJob in enumerate(JENKINS_EXTRA_JOBS):
+            extraJobBuilding = False
+            if extraJob != "":
+                try:
+                    promotion = do_jenkins_request(
+                        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/api/json'
+                    ).json()["lastBuild"]
+                    promotionData = do_jenkins_request(
+                        f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json'
+                    ).json()
+
+                    set_job_statuses(index + 1, get_result(promotionData, False))
+
+                    urls.append(promotionData["url"])
+                    tableRows.append(
+                        [
+                            f"{bcolors.BOLD}{bcolors.INFO}{extraJob}{bcolors.END}",
+                            promotionData["id"],
+                            (
+                                promotionData["description"]
+                                if promotionData["description"]
+                                else promotionData["fullDisplayName"]
+                            ),
+                            get_building_string(promotionData),
+                            get_result(promotionData),
+                        ]
+                    )
+                    extraJobBuilding = promotionData["building"]
+                except:
+                    promotionData = None
+
+            extraJobBuildings.append(extraJobBuilding)
+
+        urls = "\n".join(urls)
+
+        console_clear()
+
+        print(
+            f'{bcolors.HEADER}Project:{bcolors.BOLD} {" > ".join(JENKINS_PROJECT)}{bcolors.END}'
         )
-    )
-
-    if SHOW_URLS:
         print("")
-        print(f"{bcolors.GRAY}URLs:{bcolors.END}")
-        print(f"{bcolors.GRAY}{bcolors.UNDERLINE}{urls}{bcolors.END}")
+        print(
+            tabulate(
+                tableRows,
+                headers=[
+                    f"{bcolors.BOLD}Operation{bcolors.END}",
+                    f"{bcolors.BOLD}ID{bcolors.END}",
+                    f"{bcolors.BOLD}Description{bcolors.END}",
+                    f"{bcolors.BOLD}Running{bcolors.END}",
+                    f"{bcolors.BOLD}Status{bcolors.END}",
+                ],
+                tablefmt="rounded_grid",
+            )
+        )
 
-    print("")
+        if SHOW_URLS:
+            print("")
+            print(f"{bcolors.GRAY}URLs:{bcolors.END}")
+            print(f"{bcolors.GRAY}{bcolors.UNDERLINE}{urls}{bcolors.END}")
 
-    continueCheck = (
-        buildData["building"] or (True in extraJobBuildings) or not STOP_ON_NOT_RUNNING
-    )
+        print("")
+
+        continueCheck = (
+            buildData["building"] or (True in extraJobBuildings) or not STOP_ON_NOT_RUNNING
+        )
+    except:
+        hasError = True
 
     if continueCheck:
         if SHOW_PROGRESS_BAR:
@@ -208,3 +217,6 @@ while continueCheck:
                 time.sleep(1)
         else:
             time.sleep(SLEEP_TIME)
+        
+        if hasError:
+            console_clear()
