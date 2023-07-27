@@ -12,6 +12,7 @@ TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
 TELEGRAM_MESSAGE = sys.argv[10]
 DECORATED_OUTPUT = int(sys.argv[11]) == 1
+STOP_ON_NOT_RUNNING = int(sys.argv[12]) == 1
 REQUESTS_TIMEOUT = 10
 
 while "" in JENKINS_EXTRA_JOBS:
@@ -19,6 +20,7 @@ while "" in JENKINS_EXTRA_JOBS:
 
 continueCheck = True
 showNotification = False
+jobStatuses = [None] + list(map(lambda v: None, JENKINS_EXTRA_JOBS))
 
 
 class bcolors:
@@ -55,15 +57,17 @@ def get_building_string(build_data: list):
     return (f"{bcolors.WARNING}yes{bcolors.END}") if build_data["building"] else "no"
 
 
-def get_result(build_data: list):
+def get_result(build_data: list, decorated: bool = True):
     if build_data["building"]:
-        return f"{bcolors.WARNING}BUILDING{bcolors.END}"
+        string = f"{bcolors.WARNING if decorated else ''}BUILDING{bcolors.END if decorated else ''}"
+    else:
+        string = (
+            f'{bcolors.OK if decorated else ""}{build_data["result"]}{bcolors.END if decorated else ""}'
+            if build_data["result"] == "SUCCESS"
+            else f'{bcolors.FAIL if decorated else ""}{build_data["result"]}{bcolors.END if decorated else ""}'
+        )
 
-    return (
-        f'{bcolors.OK}{build_data["result"]}{bcolors.END}'
-        if build_data["result"] == "SUCCESS"
-        else f'{bcolors.FAIL}{build_data["result"]}{bcolors.END}'
-    )
+    return string
 
 
 def do_telegram_request(text: str):
@@ -81,11 +85,36 @@ def do_telegram_request(text: str):
     )
 
 
+def send_notification(status: str = "", job_name: str = ""):
+    message = [f'Jenkins for {" > ".join(JENKINS_PROJECT)} is ended']
+
+    if job_name != "":
+        message.append(f" {job_name}")
+
+    if status != "":
+        message.append(f" with status: {status}")
+
+    message = "".join(message)
+
+    subprocess.Popen(["notify-send", message])
+    do_telegram_request(message if TELEGRAM_MESSAGE == "" else TELEGRAM_MESSAGE)
+
+
+def set_job_statuses(index: int, value: str):
+    if jobStatuses[index] != value and jobStatuses[index] == "BUILDING":
+        job_name = "Build" if index == 0 else JENKINS_EXTRA_JOBS[index - 1]
+        send_notification(value, job_name)
+
+    jobStatuses[index] = value
+
+
 while continueCheck:
     lastBuildUrl = do_jenkins_request(
         f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/api/json'
     ).json()["lastBuild"]["url"]
     buildData = do_jenkins_request(f"{lastBuildUrl}api/json").json()
+
+    set_job_statuses(0, get_result(buildData, False))
 
     tableRows = [
         [
@@ -103,7 +132,7 @@ while continueCheck:
     ]
 
     extraJobBuildings = []
-    for extraJob in JENKINS_EXTRA_JOBS:
+    for index, extraJob in enumerate(JENKINS_EXTRA_JOBS):
         extraJobBuilding = False
         if extraJob != "":
             try:
@@ -113,6 +142,9 @@ while continueCheck:
                 promotionData = do_jenkins_request(
                     f'{JENKINS_URL}/job/{"/job/".join(JENKINS_PROJECT)}/promotion/process/{extraJob}/{str(promotion["number"])}/api/json'
                 ).json()
+
+                set_job_statuses(index + 1, get_result(promotionData, False))
+
                 urls.append(promotionData["url"])
                 tableRows.append(
                     [
@@ -162,13 +194,13 @@ while continueCheck:
 
     print("")
 
-    continueCheck = buildData["building"] or (True in extraJobBuildings)
+    continueCheck = (
+        buildData["building"] or (True in extraJobBuildings) or not STOP_ON_NOT_RUNNING
+    )
 
     if continueCheck:
         showNotification = True
         time.sleep(SLEEP_TIME)
 
 if showNotification:
-    message = f'Jenkins for {" > ".join(JENKINS_PROJECT)} is ended'
-    subprocess.Popen(["notify-send", message])
-    do_telegram_request(message if TELEGRAM_MESSAGE == "" else TELEGRAM_MESSAGE)
+    send_notification()
