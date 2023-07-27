@@ -62,7 +62,7 @@ TELEGRAM_BOT_TOKEN = prompt_string("TELEGRAM_BOT_TOKEN: ")
 TELEGRAM_CHAT_ID = prompt_string("TELEGRAM_CHAT_ID: ")
 TELEGRAM_MESSAGE = prompt_string("TELEGRAM_MESSAGE: ")
 
-filename = f"jenkins-{JENKINS_PROJECT}"
+filename = f"jenkins-{JENKINS_PROJECT.replace('|', '-')}"
 bashCode = "\n".join(
     [
         "#!/bin/bash",
@@ -89,3 +89,4 @@ bashCode = "\n".join(
 )
 
 write_file(filename, bashCode, path='/'.join([os.getcwd(), 'scripts']))
+os.chmod('/'.join([os.getcwd(), 'scripts', filename]), 0o775)
