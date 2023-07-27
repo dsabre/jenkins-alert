@@ -49,7 +49,7 @@ def write_file(filename: str, contents: str, path: str = "."):
 
 
 JENKINS_PROJECT = prompt_string("JENKINS_PROJECT: ", required=True)
-JENKINS_EXTRA_JOBS = prompt_string("JENKINS_EXTRA_JOBS: ", required=True)
+JENKINS_EXTRA_JOBS = prompt_string("JENKINS_EXTRA_JOBS: ")
 JENKINS_URL = prompt_string("JENKINS_URL: ", required=True)
 JENKINS_USERNAME = prompt_string("JENKINS_USERNAME: ", required=True)
 JENKINS_PASSWORD = prompt_string("JENKINS_PASSWORD: ", required=True)
