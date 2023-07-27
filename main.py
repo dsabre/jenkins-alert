@@ -21,7 +21,6 @@ while "" in JENKINS_EXTRA_JOBS:
     JENKINS_EXTRA_JOBS.remove("")
 
 continueCheck = True
-showNotification = False
 jobStatuses = [None] + list(map(lambda v: None, JENKINS_EXTRA_JOBS))
 
 
@@ -201,14 +200,9 @@ while continueCheck:
     )
 
     if continueCheck:
-        showNotification = True
-
         if SHOW_PROGRESS_BAR:
             print("Reloading")
             for i in tqdm(range(SLEEP_TIME)):
                 time.sleep(1)
         else:
             time.sleep(SLEEP_TIME)
-
-if showNotification:
-    send_notification()
