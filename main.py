@@ -1,18 +1,20 @@
 import requests, sys, os, time, subprocess
 from tabulate import tabulate
+from tqdm import tqdm
 
 JENKINS_PROJECT = sys.argv[1].split("|")
 JENKINS_EXTRA_JOBS = sys.argv[2].split("|")
 JENKINS_URL = sys.argv[3]
 JENKINS_USERNAME = sys.argv[4]
 JENKINS_PASSWORD = sys.argv[5]
-SLEEP_TIME = float(sys.argv[6])
+SLEEP_TIME = int(sys.argv[6])
 SHOW_URLS = int(sys.argv[7]) == 1
 TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
 TELEGRAM_MESSAGE = sys.argv[10]
 DECORATED_OUTPUT = int(sys.argv[11]) == 1
 STOP_ON_NOT_RUNNING = int(sys.argv[12]) == 1
+SHOW_PROGRESS_BAR = int(sys.argv[13]) == 1
 REQUESTS_TIMEOUT = 10
 
 while "" in JENKINS_EXTRA_JOBS:
@@ -200,7 +202,13 @@ while continueCheck:
 
     if continueCheck:
         showNotification = True
-        time.sleep(SLEEP_TIME)
+
+        if SHOW_PROGRESS_BAR:
+            print("Reloading")
+            for i in tqdm(range(SLEEP_TIME)):
+                time.sleep(1)
+        else:
+            time.sleep(SLEEP_TIME)
 
 if showNotification:
     send_notification()
