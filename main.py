@@ -88,6 +88,11 @@ def do_telegram_request(text: str):
     )
 
 
+def do_gnome_notification(message):
+    icon_path = os.path.join(os.path.dirname(__file__), "images/jenkins-logo.png")
+    subprocess.Popen(["notify-send", message, f"--icon={icon_path}"])
+
+
 def send_notification(status: str = "", job_name: str = ""):
     message = [f'Jenkins for {" > ".join(JENKINS_PROJECT)} is ended']
 
@@ -99,7 +104,7 @@ def send_notification(status: str = "", job_name: str = ""):
 
     message = "".join(message)
 
-    subprocess.Popen(["notify-send", message])
+    do_gnome_notification(message)
     do_telegram_request(message if TELEGRAM_MESSAGE == "" else TELEGRAM_MESSAGE)
 
 
@@ -205,7 +210,9 @@ while continueCheck:
         print("")
 
         continueCheck = (
-            buildData["building"] or (True in extraJobBuildings) or not STOP_ON_NOT_RUNNING
+            buildData["building"]
+            or (True in extraJobBuildings)
+            or not STOP_ON_NOT_RUNNING
         )
     except:
         hasError = True
@@ -217,6 +224,6 @@ while continueCheck:
                 time.sleep(1)
         else:
             time.sleep(SLEEP_TIME)
-        
+
         if hasError:
             console_clear()
