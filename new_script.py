@@ -58,6 +58,7 @@ SLEEP_TIME = prompt_int(f"SLEEP_TIME [{'5' if int(STOP_ON_NOT_RUNNING) == 1 else
 SHOW_URLS = prompt_int("SHOW_URLS [1]: ", default=1, choices=[0, 1])
 SHOW_PROGRESS_BAR = prompt_int("SHOW_PROGRESS_BAR [1]: ", default=1, choices=[0, 1])
 DECORATED_OUTPUT = prompt_int("DECORATED_OUTPUT [1]: ", default=1, choices=[0, 1])
+DO_SOUNDS = prompt_int("DO_SOUNDS [1]: ", default=1, choices=[0, 1])
 TELEGRAM_BOT_TOKEN = prompt_string("TELEGRAM_BOT_TOKEN: ")
 TELEGRAM_CHAT_ID = prompt_string("TELEGRAM_CHAT_ID: ")
 TELEGRAM_MESSAGE = prompt_string("TELEGRAM_MESSAGE: ")
@@ -78,13 +79,14 @@ bashCode = "\n".join(
         f"SHOW_URLS={SHOW_URLS}",
         f"SHOW_PROGRESS_BAR={SHOW_PROGRESS_BAR}",
         f"DECORATED_OUTPUT={DECORATED_OUTPUT}",
+        f"DO_SOUNDS={DO_SOUNDS}",
         f'TELEGRAM_BOT_TOKEN="{TELEGRAM_BOT_TOKEN}"',
         f'TELEGRAM_CHAT_ID="{TELEGRAM_CHAT_ID}"',
         f'TELEGRAM_MESSAGE="{TELEGRAM_MESSAGE}"',
         "# end script configuration",
         "",
         'SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../main.py"',
-        'python3 "$SCRIPT_PATH" "$JENKINS_PROJECT" "$JENKINS_EXTRA_JOBS" "$JENKINS_URL" "$JENKINS_USERNAME" "$JENKINS_PASSWORD" $SLEEP_TIME $SHOW_URLS "$TELEGRAM_BOT_TOKEN" "$TELEGRAM_CHAT_ID" "$TELEGRAM_MESSAGE" $DECORATED_OUTPUT $STOP_ON_NOT_RUNNING $SHOW_PROGRESS_BAR',
+        'python3 "$SCRIPT_PATH" "$JENKINS_PROJECT" "$JENKINS_EXTRA_JOBS" "$JENKINS_URL" "$JENKINS_USERNAME" "$JENKINS_PASSWORD" $SLEEP_TIME $SHOW_URLS "$TELEGRAM_BOT_TOKEN" "$TELEGRAM_CHAT_ID" "$TELEGRAM_MESSAGE" $DECORATED_OUTPUT $STOP_ON_NOT_RUNNING $SHOW_PROGRESS_BAR $DO_SOUNDS',
     ]
 )
 

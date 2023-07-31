@@ -26,6 +26,7 @@ SLEEP_TIME=5 # info refresh timing expressed in seconds
 SHOW_URLS=1 # 1 or 0
 SHOW_PROGRESS_BAR=1 # 1 or 0
 DECORATED_OUTPUT=1 # 1 or 0
+DO_SOUNDS=1 # 1 or 0
 TELEGRAM_BOT_TOKEN="" # can be empty
 TELEGRAM_CHAT_ID="" # can be empty
 TELEGRAM_MESSAGE="" # can be empty (if empty but telegram is configured, will be used a standard message)
@@ -33,5 +34,5 @@ TELEGRAM_MESSAGE="" # can be empty (if empty but telegram is configured, will be
 
 SCRIPT_PATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../main.py"
 
-python3 "$SCRIPT_PATH" "$JENKINS_PROJECT" "$JENKINS_EXTRA_JOBS" "$JENKINS_URL" "$JENKINS_USERNAME" "$JENKINS_PASSWORD" $SLEEP_TIME $SHOW_URLS "$TELEGRAM_BOT_TOKEN" "$TELEGRAM_CHAT_ID" "$TELEGRAM_MESSAGE" $DECORATED_OUTPUT $STOP_ON_NOT_RUNNING $SHOW_PROGRESS_BAR
+python3 "$SCRIPT_PATH" "$JENKINS_PROJECT" "$JENKINS_EXTRA_JOBS" "$JENKINS_URL" "$JENKINS_USERNAME" "$JENKINS_PASSWORD" $SLEEP_TIME $SHOW_URLS "$TELEGRAM_BOT_TOKEN" "$TELEGRAM_CHAT_ID" "$TELEGRAM_MESSAGE" $DECORATED_OUTPUT $STOP_ON_NOT_RUNNING $SHOW_PROGRESS_BAR $DO_SOUNDS
 ```

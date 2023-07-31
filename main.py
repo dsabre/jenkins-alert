@@ -13,6 +13,7 @@ TELEGRAM_BOT_TOKEN = sys.argv[8]
 TELEGRAM_CHAT_ID = sys.argv[9]
 TELEGRAM_MESSAGE = sys.argv[10]
 DECORATED_OUTPUT = int(sys.argv[11]) == 1
+DO_SOUNDS = int(sys.argv[11]) == 1
 STOP_ON_NOT_RUNNING = int(sys.argv[12]) == 1
 SHOW_PROGRESS_BAR = int(sys.argv[13]) == 1
 REQUESTS_TIMEOUT = 10
@@ -88,9 +89,15 @@ def do_telegram_request(text: str):
     )
 
 
+def do_ping_sound():
+    if DO_SOUNDS:
+        subprocess.Popen(["echo", "-en", "\\007"])
+
+
 def do_gnome_notification(message):
     icon_path = os.path.join(os.path.dirname(__file__), "images/jenkins-logo.png")
     subprocess.Popen(["notify-send", message, f"--icon={icon_path}"])
+    do_ping_sound()
 
 
 def send_notification(status: str = "", job_name: str = ""):
