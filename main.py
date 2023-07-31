@@ -1,6 +1,7 @@
 import requests, sys, os, time, subprocess
 from tabulate import tabulate
 from tqdm import tqdm
+from pynput import keyboard
 
 JENKINS_PROJECT = sys.argv[1].split("|")
 JENKINS_EXTRA_JOBS = sys.argv[2].split("|")
@@ -23,6 +24,13 @@ while "" in JENKINS_EXTRA_JOBS:
 
 continueCheck = True
 jobStatuses = [None] + list(map(lambda v: None, JENKINS_EXTRA_JOBS))
+
+# listener for manual update
+forceReload = False
+def on_release(key):
+    global forceReload
+    forceReload = key == keyboard.Key.f5
+keyboard.Listener(on_release=on_release).start()
 
 
 class bcolors:
@@ -225,12 +233,24 @@ while continueCheck:
         hasError = True
 
     if continueCheck:
+        print("Reloading (press F5 to reload now)")
+
         if SHOW_PROGRESS_BAR:
-            print("Reloading")
             for i in tqdm(range(SLEEP_TIME)):
+                if forceReload:
+                    console_clear()
+                    print("Reloading")
+                    forceReload = False
+                    break
                 time.sleep(1)
         else:
-            time.sleep(SLEEP_TIME)
+            for i in range(SLEEP_TIME):
+                if forceReload:
+                    console_clear()
+                    print("Reloading")
+                    forceReload = False
+                    break
+                time.sleep(1)
 
         if hasError:
             console_clear()

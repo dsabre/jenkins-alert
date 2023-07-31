@@ -7,6 +7,7 @@ A simple Jenkins watcher in python.
 - [notify-send](https://ss64.com/bash/notify-send.html "notify-send")
 - [tabulate](https://pypi.org/project/tabulate/ "tabulate")
 - [tqdm](https://tqdm.github.io "tqdm")
+- [pynput](https://pypi.org/project/pynput/ "pynput")
 
 ## Usage
 
