@@ -27,9 +27,13 @@ jobStatuses = [None] + list(map(lambda v: None, JENKINS_EXTRA_JOBS))
 
 # listener for manual update
 forceReload = False
+
+
 def on_release(key):
     global forceReload
     forceReload = key == keyboard.Key.f5
+
+
 keyboard.Listener(on_release=on_release).start()
 
 
@@ -120,6 +124,16 @@ def send_notification(status: str = "", job_name: str = ""):
     message = "".join(message)
 
     do_gnome_notification(message)
+
+    global TELEGRAM_MESSAGE
+    if TELEGRAM_MESSAGE != "":
+        TELEGRAM_MESSAGE = (
+            TELEGRAM_MESSAGE
+            .replace("{PROJECT}", " > ".join(JENKINS_PROJECT))
+            .replace("{JOB_NAME}", job_name)
+            .replace("{STATUS}", status)
+        )
+
     do_telegram_request(message if TELEGRAM_MESSAGE == "" else TELEGRAM_MESSAGE)
 
 
