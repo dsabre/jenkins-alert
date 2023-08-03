@@ -9,6 +9,12 @@ A simple Jenkins watcher in python.
 - [tqdm](https://tqdm.github.io "tqdm")
 - [pynput](https://pypi.org/project/pynput/ "pynput")
 
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Usage
 
 Just run: ```python3 new_script.py``` and follow instructions to create a new script or manually create a script inside the "scripts" directory with the following code:
