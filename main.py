@@ -22,6 +22,7 @@ REQUESTS_TIMEOUT = 10
 while "" in JENKINS_EXTRA_JOBS:
     JENKINS_EXTRA_JOBS.remove("")
 
+run = True
 continueCheck = True
 jobStatuses = [None] + list(map(lambda v: None, JENKINS_EXTRA_JOBS))
 
@@ -32,6 +33,13 @@ forceReload = False
 def on_release(key):
     global forceReload
     forceReload = key == keyboard.Key.f5
+
+    try:
+        if key.char == "q":
+            global run
+            run = False
+    except:
+        pass
 
 
 keyboard.Listener(on_release=on_release).start()
@@ -128,8 +136,7 @@ def send_notification(status: str = "", job_name: str = ""):
     global TELEGRAM_MESSAGE
     if TELEGRAM_MESSAGE != "":
         TELEGRAM_MESSAGE = (
-            TELEGRAM_MESSAGE
-            .replace("{PROJECT}", " > ".join(JENKINS_PROJECT))
+            TELEGRAM_MESSAGE.replace("{PROJECT}", " > ".join(JENKINS_PROJECT))
             .replace("{JOB_NAME}", job_name)
             .replace("{STATUS}", status)
         )
@@ -247,7 +254,7 @@ while continueCheck:
         hasError = True
 
     if continueCheck:
-        print("Reloading (press F5 to reload now)")
+        print("Reloading (press 'F5' to reload now, 'q' to quit)")
 
         if SHOW_PROGRESS_BAR:
             for i in tqdm(range(SLEEP_TIME)):
@@ -256,6 +263,8 @@ while continueCheck:
                     print("Reloading")
                     forceReload = False
                     break
+                if not run:
+                    sys.exit(0)
                 time.sleep(1)
         else:
             for i in range(SLEEP_TIME):
@@ -264,6 +273,8 @@ while continueCheck:
                     print("Reloading")
                     forceReload = False
                     break
+                if not run:
+                    sys.exit(0)
                 time.sleep(1)
 
         if hasError:
